@@ -111,10 +111,10 @@ postgresql:
    authentication:
     replication:
       username:   replicator
-      password:     "A1qaz2wsx3edc"
+      password:     "Test"
     superuser:
       username:   postgres
-      password:     "B1qaz2wsx3edc"
+      password:     "Test"
       parameters:
       unix_socket_directories:  '.'
 tags:
@@ -159,7 +159,7 @@ patronictl -c /etc/patroni.yml list
 ```
 ### you have to see this
 ```bash
-+ Cluster: postgres (7331834111900333968) ----+----+-----------+
+
 | Member | Host         | Role    | State     | TL | Lag in MB |
 +--------+--------------+---------+-----------+----+-----------+
 | node1  | 10.130.4.150 | Leader  | running   |  4 |           |
