@@ -1,7 +1,7 @@
 # patroni-postgres-etcd-haproxy-keepalived
 ### stable database with three nodes of etcd and postgres which are always sync and haproxy and keepalived for stability
-### (For focal ubuntu)
-### first you gotta update and upgrade your ubuntu
+## (For focal ubuntu)
+### first you gotta update and upgrade your 
 ```bash
 sudo apt update
 sudo apt upgrade
@@ -35,6 +35,33 @@ sudo apt -y install etcd
 sudo systemctl stop etcd
 sudo systemctl disable etcd
 ```
+
+### after installing docker engine with this link
+[Installation of docker](https://docs.docker.com/engine/install/ubuntu/)
+### just edit and custom the ip and name of etcd node and run this command
+```bash
+docker run -d -v /usr/share/ca-certificates/:/etc/ssl/certs -p 4001:4001 -p 2380:2380 -p 2379:2379 --restart=always \
+    --name etcd quay.io/coreos/etcd:v2.3.8 \
+    -name etcd0 \
+    -advertise-client-urls http://10.130.4.150:2379,http://10.130.4.150:4001 \
+    -listen-client-urls http://0.0.0.0:2379,http://0.0.0.0:4001 \
+    -initial-advertise-peer-urls http://10.130.4.150:2380 \
+    -listen-peer-urls http://0.0.0.0:2380 \
+    -initial-cluster-token etcd-cluster-1 \
+    -initial-cluster etcd0=http://10.130.4.150:2380,etcd1=http://10.130.4.151:2380,etcd2=http://10.130.4.152:2380 \
+    -initial-cluster-state new
+```
+### Now test etcd members with this command (etcd use an election for the leader node)
+```bash
+etcdctl member list
+```
+### Then you will see this
+```bash
+name=etcd2 peerURLs=http://10.130.4.152:2380 clientURLs=http://10.130.4.150:4001,http://10.130.4.152:2379 isLeader=false
+name=etcd0 peerURLs=http://10.130.4.150:2380 clientURLs=http://10.130.4.150:2379,http://10.130.4.150:4001 isLeader=true
+name=etcd1 peerURLs=http://10.130.4.151:2380 clientURLs=http://10.130.4.150:4001,http://10.130.4.151:2379 isLeader=false
+```
+
 ### Install haproxy on all three nodes
 ```bash
 sudo apt -y install haproxy
@@ -125,6 +152,21 @@ WantedBy=multi-user.targ
 sudo systemctl daemon-reload
 sudo systemctl start patroni
 ```
+
+### Test patroni with this command
+```bash
+patronictl -c /etc/patroni.yml list
+```
+### you have to see this
+```bash
++ Cluster: postgres (7331834111900333968) ----+----+-----------+
+| Member | Host         | Role    | State     | TL | Lag in MB |
++--------+--------------+---------+-----------+----+-----------+
+| node1  | 10.130.4.150 | Leader  | running   |  4 |           |
+| node2  | 10.130.4.151 | Replica | streaming |  4 |         0 |
+| node3  | 10.130.4.152 | Replica | running   |  2 |         0 |
++--------+--------------+---------+-----------+----+-----------+
+```
 ### Add below lines in /etc/haproxy/haproxy.cfg on haproxy node1 and node2 and node3 
 ```bash
 listen stats
@@ -172,4 +214,7 @@ vrrp_instance VI_1 {
   }
 }
 ```
-
+### and restart the keepalived
+```bash
+sudo systemctl restart keepalived
+```
