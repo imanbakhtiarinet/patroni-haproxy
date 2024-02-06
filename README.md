@@ -1,7 +1,6 @@
 # patroni-postgres-etcd-haproxy-keepalived
-## stable database with three nodes of etcd and postgres which are always sync and haproxy and keepalived for stability
-# How to run patroni ,postgres and etcd with haproxy and keepalived
-## (For focal ubuntu)
+### stable database with three nodes of etcd and postgres which are always sync and haproxy and keepalived for stability
+### (For focal ubuntu)
 ### first you gotta update and upgrade your 
 ```bash
 sudo apt update
